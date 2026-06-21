@@ -25,6 +25,7 @@ import {FileNode} from './FileNode';
 import {GalleryNode} from './GalleryNode';
 import {HeaderNode} from './HeaderNode';
 import {HeadingNode, QuoteNode} from '@lexical/rich-text';
+import {HomeComponentNode} from './HomeComponentNode';
 import {HorizontalRuleNode} from './HorizontalRuleNode';
 import {HtmlNode} from './HtmlNode';
 import {ImageNode} from './ImageNode';
@@ -58,6 +59,7 @@ const DEFAULT_NODES = [
     AudioNode,
     VideoNode,
     CalloutNode,
+    HomeComponentNode,
     HtmlNode,
     FileNode,
     ButtonNode,

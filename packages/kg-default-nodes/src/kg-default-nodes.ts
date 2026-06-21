@@ -6,6 +6,7 @@ import * as markdown from './nodes/markdown/MarkdownNode.js';
 import * as video from './nodes/video/VideoNode.js';
 import * as audio from './nodes/audio/AudioNode.js';
 import * as callout from './nodes/callout/CalloutNode.js';
+import * as homeComponent from './nodes/home-component/HomeComponentNode.js';
 import * as callToAction from './nodes/call-to-action/CallToActionNode.js';
 import * as aside from './nodes/aside/AsideNode.js';
 import * as horizontalrule from './nodes/horizontalrule/HorizontalRuleNode.js';
@@ -41,6 +42,7 @@ export * from './nodes/markdown/MarkdownNode.js';
 export * from './nodes/video/VideoNode.js';
 export * from './nodes/audio/AudioNode.js';
 export * from './nodes/callout/CalloutNode.js';
+export * from './nodes/home-component/HomeComponentNode.js';
 export * from './nodes/aside/AsideNode.js';
 export * from './nodes/horizontalrule/HorizontalRuleNode.js';
 export * from './nodes/html/HtmlNode.js';
@@ -105,6 +107,7 @@ export const DEFAULT_NODES = [
     video.VideoNode,
     audio.AudioNode,
     callout.CalloutNode,
+    homeComponent.HomeComponentNode,
     callToAction.CallToActionNode,
     aside.AsideNode,
     horizontalrule.HorizontalRuleNode,

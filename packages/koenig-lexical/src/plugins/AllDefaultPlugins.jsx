@@ -18,6 +18,7 @@ import {EmojiPickerPlugin} from './EmojiPickerPlugin';
 import {FilePlugin} from '../plugins/FilePlugin';
 import {GalleryPlugin} from '../plugins/GalleryPlugin';
 import {HeaderPlugin} from '../plugins/HeaderPlugin';
+import {HomeComponentPlugin} from '../plugins/HomeComponentPlugin';
 import {KoenigSnippetPlugin} from '../plugins/KoenigSnippetPlugin';
 import {ListPlugin} from '@lexical/react/LexicalListPlugin';
 import {PaywallPlugin} from '../plugins/PaywallPlugin';
@@ -50,6 +51,7 @@ export const AllDefaultPlugins = () => {
             <EmEnDashPlugin />
             <HorizontalRulePlugin />
             <CalloutPlugin />
+            <HomeComponentPlugin />
             <HtmlPlugin />
             <FilePlugin />
             <ButtonPlugin />
