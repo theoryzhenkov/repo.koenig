@@ -1,136 +1,61 @@
-import EmojiPickerPortal from '../EmojiPickerPortal';
 import KoenigComposerContext from '../../../context/KoenigComposerContext.jsx';
 import KoenigNestedEditor from '../../KoenigNestedEditor';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ColorOptionSetting, SettingsPanel, ToggleSetting} from '../SettingsPanel';
 import {ReadOnlyOverlay} from '../ReadOnlyOverlay';
+import {SettingsPanel} from '../SettingsPanel';
 
-export const CALLOUT_COLORS = {
-    white: 'bg-transparent border-grey/30',
-    grey: 'bg-grey/10 border-transparent',
-    blue: 'bg-blue/10 border-transparent',
-    green: 'bg-green/10 border-transparent',
-    yellow: 'bg-yellow/10 border-transparent',
-    red: 'bg-red/10 border-transparent',
-    pink: 'bg-pink/10 border-transparent',
-    purple: 'bg-purple/10 border-transparent',
-    accent: 'bg-accent border-transparent'
+// TheoR: callouts render as Home-native `[data-callout]` with a semantic type.
+// The editor card is tinted per type and shows the selected Lucide icon.
+export const CALLOUT_TYPE_STYLES = {
+    note: 'bg-grey/10 border-transparent',
+    info: 'bg-blue/10 border-transparent',
+    tip: 'bg-green/10 border-transparent',
+    important: 'bg-purple/10 border-transparent',
+    warning: 'bg-yellow/10 border-transparent',
+    danger: 'bg-red/10 border-transparent',
+    quote: 'bg-grey/10 border-transparent'
 };
 
 const TEXT_BLACK = 'text-black dark:text-grey-300 caret-black dark:caret-grey-300';
-const TEXT_WHITE = 'text-white caret-white';
 
-export const CALLOUT_TEXT_COLORS = {
-    white: TEXT_BLACK,
-    grey: TEXT_BLACK,
-    blue: TEXT_BLACK,
-    green: TEXT_BLACK,
-    yellow: TEXT_BLACK,
-    red: TEXT_BLACK,
-    pink: TEXT_BLACK,
-    purple: TEXT_BLACK,
-    // .kg-callout-accent makes sure links are not in accent color anymore
-    accent: TEXT_WHITE + ' kg-callout-accent'
+// Each selectable Lucide icon maps to the callout type it represents.
+export const ICON_TO_TYPE = {
+    info: 'info',
+    lightbulb: 'tip',
+    sparkles: 'important',
+    'triangle-alert': 'warning',
+    'circle-x': 'danger',
+    'message-square-quote': 'quote'
 };
 
-export const calloutColorPicker = [
-    {
-        label: 'White',
-        name: 'white',
-        color: 'bg-transparent border-black/15 dark:border-white/10'
-    },
-    {
-        label: 'Grey',
-        name: 'grey',
-        color: 'bg-grey/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Blue',
-        name: 'blue',
-        color: 'bg-blue/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Green',
-        name: 'green',
-        color: 'bg-green/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Yellow',
-        name: 'yellow',
-        color: 'bg-yellow/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Red',
-        name: 'red',
-        color: 'bg-red/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Pink',
-        name: 'pink',
-        color: 'bg-pink/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Purple',
-        name: 'purple',
-        color: 'bg-purple/20 border-black/[0.08] dark:border-white/10'
-    },
-    {
-        label: 'Accent',
-        name: 'accent',
-        color: 'bg-accent border-black/[0.08] dark:border-white/10'
-    }
-];
+function cardStyle(type) {
+    return CALLOUT_TYPE_STYLES[type] || CALLOUT_TYPE_STYLES.info;
+}
 
 export function CalloutCard({
-    color = 'green',
+    color = 'info',
+    calloutIcon = 'info',
+    calloutIcons = [],
     isEditing,
-    setShowEmojiPicker,
-    toggleEmoji,
-    hasEmoji = true,
-    handleColorChange,
-    changeEmoji,
-    calloutEmoji = '💡',
+    handleTypeChange,
     textEditor,
     textEditorInitialState,
-    nodeKey,
-    toggleEmojiPicker,
-    showEmojiPicker
+    nodeKey
 }) {
-    const emojiButtonRef = React.useRef(null);
     const {darkMode} = React.useContext(KoenigComposerContext);
 
-    React.useEffect(() => {
-        if (!isEditing) {
-            setShowEmojiPicker(false);
-        }
-    }, [isEditing, setShowEmojiPicker]);
+    const effectiveIconName = calloutIcon || calloutIcons[0]?.name || 'info';
+    const SelectedIcon = calloutIcons.find(i => i.name === effectiveIconName)?.Icon;
 
     return (
         <>
-            <div className={`flex rounded-md border px-7 py-5 ${CALLOUT_COLORS[color]} `} data-testid={`callout-bg-${color}`}>
-                <div>
-                    {hasEmoji &&
-                    <>
-                        <button
-                            ref={emojiButtonRef}
-                            className={`mr-2 cursor-pointer rounded-md px-2 text-xl ${isEditing ? 'hover:bg-grey-500/20' : ''} ` }
-                            data-testid="emoji-picker-button"
-                            type="button"
-                            onClick={toggleEmojiPicker}
-                        >
-                            {calloutEmoji}
-                        </button>
-                        {
-                            isEditing && showEmojiPicker && (
-                                <EmojiPickerPortal
-                                    positionRef={emojiButtonRef}
-                                    togglePortal={toggleEmojiPicker}
-                                    onEmojiClick={changeEmoji} />
-                            )
-                        }
-                    </>}
-                </div>
+            <div className={`flex items-start rounded-md border px-7 py-5 ${cardStyle(color)}`} data-testid={`callout-bg-${color}`}>
+                {SelectedIcon && (
+                    <span className="mr-3 mt-1 shrink-0 text-grey-700 dark:text-grey-300" data-testid="callout-icon">
+                        <SelectedIcon size={20} />
+                    </span>
+                )}
                 <KoenigNestedEditor
                     autoFocus={true}
                     defaultKoenigEnterBehaviour={true}
@@ -140,27 +65,34 @@ export function CalloutCard({
                     placeholderClassName={`font-serif text-xl font-normal tracking-wide text-grey-500 !dark:text-white opacity-30`}
                     placeholderText={'Callout text...'}
                     singleParagraph={true}
-                    textClassName={`!my-0 w-full whitespace-normal bg-transparent font-serif text-xl font-normal ${CALLOUT_TEXT_COLORS[color]}`}
+                    textClassName={`!my-0 w-full whitespace-normal bg-transparent font-serif text-xl font-normal ${TEXT_BLACK}`}
                 />
             </div>
             {
                 isEditing ? (
-                    <SettingsPanel
-                        darkMode={darkMode}
-                    >
-                        <ToggleSetting
-                            dataTestId='emoji-toggle'
-                            isChecked={!!calloutEmoji}
-                            label='Emoji'
-                            onChange={toggleEmoji}
-                        />
-                        <ColorOptionSetting
-                            buttons={calloutColorPicker}
-                            dataTestId='callout-color-picker'
-                            label='Background'
-                            selectedName={color}
-                            onClick={handleColorChange}
-                        />
+                    <SettingsPanel darkMode={darkMode}>
+                        <div className="flex flex-col gap-2 px-4 py-2" data-testid="callout-icon-picker">
+                            <div className="text-2xs font-bold uppercase tracking-wide text-grey-700 dark:text-grey-300">Style</div>
+                            <div className="flex flex-wrap gap-1">
+                                {calloutIcons.map((icon) => {
+                                    const Icon = icon.Icon;
+                                    const isActive = icon.name === effectiveIconName;
+                                    return (
+                                        <button
+                                            key={icon.name}
+                                            aria-label={icon.label}
+                                            className={`flex size-8 items-center justify-center rounded-md border text-grey-700 dark:text-grey-300 ${isActive ? 'border-green bg-green/10' : 'border-transparent hover:bg-grey-500/10'}`}
+                                            data-testid={icon.dataTestId || `callout-icon-${icon.name}`}
+                                            title={icon.label}
+                                            type="button"
+                                            onClick={() => handleTypeChange(icon.name)}
+                                        >
+                                            {Icon ? <Icon size={16} /> : icon.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </SettingsPanel>
                 ) : (
                     <ReadOnlyOverlay />
@@ -171,20 +103,12 @@ export function CalloutCard({
 }
 
 CalloutCard.propTypes = {
-    color: PropTypes.oneOf(['white', 'grey', 'blue', 'green', 'yellow', 'red', 'pink', 'purple', 'accent']),
-    text: PropTypes.string,
-    hasEmoji: PropTypes.bool,
-    placeholder: PropTypes.string,
+    color: PropTypes.string,
+    calloutIcon: PropTypes.string,
+    calloutIcons: PropTypes.array,
     isEditing: PropTypes.bool,
-    updateText: PropTypes.func,
-    calloutEmoji: PropTypes.string,
-    setShowEmojiPicker: PropTypes.func,
-    toggleEmoji: PropTypes.func,
-    handleColorChange: PropTypes.func,
-    changeEmoji: PropTypes.func,
+    handleTypeChange: PropTypes.func,
     textEditor: PropTypes.object,
     textEditorInitialState: PropTypes.object,
-    nodeKey: PropTypes.string,
-    toggleEmojiPicker: PropTypes.func,
-    showEmojiPicker: PropTypes.bool
+    nodeKey: PropTypes.string
 };

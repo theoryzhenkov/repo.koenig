@@ -3,62 +3,47 @@ import KoenigComposerContext from '../context/KoenigComposerContext.jsx';
 import React from 'react';
 import {$getNodeByKey} from 'lexical';
 import {ActionToolbar} from '../components/ui/ActionToolbar.jsx';
-import {CalloutCard} from '../components/ui/cards/CalloutCard';
+import {CalloutCard, ICON_TO_TYPE} from '../components/ui/cards/CalloutCard';
 import {EDIT_CARD_COMMAND} from '../plugins/KoenigBehaviourPlugin';
 import {SnippetActionToolbar} from '../components/ui/SnippetActionToolbar.jsx';
 import {ToolbarMenu, ToolbarMenuItem, ToolbarMenuSeparator} from '../components/ui/ToolbarMenu.jsx';
 import {sanitizeHtml} from '../utils/sanitize-html';
 import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
 
-export function CalloutNodeComponent({nodeKey, textEditor, textEditorInitialState, backgroundColor, calloutEmoji}) {
+const TYPE_DEFAULT_ICON = {
+    note: 'info',
+    info: 'info',
+    tip: 'lightbulb',
+    hint: 'lightbulb',
+    important: 'sparkles',
+    warning: 'triangle-alert',
+    caution: 'triangle-alert',
+    attention: 'triangle-alert',
+    danger: 'circle-x',
+    error: 'circle-x',
+    bug: 'circle-x',
+    quote: 'message-square-quote',
+    cite: 'message-square-quote'
+};
+
+export function CalloutNodeComponent({nodeKey, textEditor, textEditorInitialState, backgroundColor, calloutIcon}) {
     const [editor] = useLexicalComposerContext();
 
     const {isSelected, isEditing, setEditing} = React.useContext(CardContext);
     const {cardConfig} = React.useContext(KoenigComposerContext);
-    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
     const [showSnippetToolbar, setShowSnippetToolbar] = React.useState(false);
-    const [emoji, setEmoji] = React.useState(calloutEmoji);
-    const [hasEmoji, setHasEmoji] = React.useState(calloutEmoji ? true : false);
+    const calloutIcons = cardConfig.theorCalloutIcons || [];
+    const effectiveIcon = calloutIcon || TYPE_DEFAULT_ICON[backgroundColor] || calloutIcons[0]?.name || 'info';
 
-    const toggleEmoji = (event) => {
-        event.stopPropagation();
-        setEditing(true); // keep card selected when toggling emoji (else we lose the settings pane on deselection)
+    const handleTypeChange = (iconName) => {
         editor.update(() => {
             const node = $getNodeByKey(nodeKey);
-            setHasEmoji(event.target.checked);
-            if (event.target.checked && emoji === '') {
-                node.calloutEmoji = '💡';
-            } else {
-                node.calloutEmoji = event.target.checked ? emoji : '';
+            if (!node) {
+                return;
             }
+            node.calloutIcon = iconName;
+            node.backgroundColor = ICON_TO_TYPE[iconName] || node.backgroundColor || 'info';
         });
-    };
-
-    const handleColorChange = (color) => {
-        editor.update(() => {
-            const node = $getNodeByKey(nodeKey);
-            node.backgroundColor = color;
-        });
-    };
-
-    const handleEmojiChange = (event) => {
-        editor.update(() => {
-            const node = $getNodeByKey(nodeKey);
-            setEmoji(event.native);
-            node.calloutEmoji = event.native;
-            toggleEmojiPicker();
-        });
-    };
-
-    const toggleEmojiPicker = () => {
-        if (!isEditing) {
-            setEditing(true);
-        }
-
-        if (showEmojiPicker) {
-            textEditor.focus();
-        }
-        setShowEmojiPicker(!showEmojiPicker);
     };
 
     const handleToolbarEdit = (event) => {
@@ -74,20 +59,15 @@ export function CalloutNodeComponent({nodeKey, textEditor, textEditorInitialStat
     return (
         <>
             <CalloutCard
-                calloutEmoji={calloutEmoji}
-                changeEmoji={handleEmojiChange}
+                calloutIcon={effectiveIcon}
+                calloutIcons={calloutIcons}
                 color={backgroundColor}
-                handleColorChange={handleColorChange}
-                hasEmoji={hasEmoji}
+                handleTypeChange={handleTypeChange}
                 isEditing={isEditing}
                 nodeKey={nodeKey}
                 sanitizeHtml={sanitizeHtml}
-                setShowEmojiPicker={setShowEmojiPicker}
-                showEmojiPicker={showEmojiPicker}
                 textEditor={textEditor}
                 textEditorInitialState={textEditorInitialState}
-                toggleEmoji={toggleEmoji}
-                toggleEmojiPicker={toggleEmojiPicker}
             />
             <ActionToolbar
                 data-kg-card-toolbar="callout"

@@ -71,7 +71,7 @@ export class CalloutNode extends BaseCalloutNode {
             <KoenigCardWrapper nodeKey={this.getKey()}>
                 <CalloutNodeComponent
                     backgroundColor={this.backgroundColor}
-                    calloutEmoji={this.calloutEmoji}
+                    calloutIcon={this.calloutIcon}
                     nodeKey={this.getKey()}
                     textEditor={this.__calloutTextEditor}
                     textEditorInitialState={this.__calloutTextEditorInitialState}
