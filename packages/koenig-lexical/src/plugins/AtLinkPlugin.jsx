@@ -169,9 +169,18 @@ export const KoenigAtLinkPlugin = ({searchLinks, siteUrl}) => {
                 // store current node's format so it can be re-applied to the eventual link node
                 const linkFormat = selection.anchor.getNode().getFormat();
 
-                // delete the trigger character(s)
-                for (let i = 0; i < deleteCount; i++) {
-                    selection.deleteCharacter(true);
+                // delete the trigger character(s). We splice them directly out of
+                // the anchor text node rather than looping deleteCharacter() —
+                // multiple deleteCharacter() calls in a single update can leave a
+                // stray trigger char behind (e.g. '[[' would leave one '[').
+                const anchorNode = selection.anchor.getNode();
+                const anchorOffset = selection.anchor.offset;
+                if ($isTextNode(anchorNode) && anchorOffset >= deleteCount) {
+                    anchorNode.spliceText(anchorOffset - deleteCount, deleteCount, '', true);
+                } else {
+                    for (let i = 0; i < deleteCount; i++) {
+                        selection.deleteCharacter(true);
+                    }
                 }
 
                 $insertAtLinkNode(linkFormat);

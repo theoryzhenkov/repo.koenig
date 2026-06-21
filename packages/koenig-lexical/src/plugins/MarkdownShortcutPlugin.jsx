@@ -1,6 +1,7 @@
+import React from 'react';
 import {$createCodeBlockNode, $isCodeBlockNode, CodeBlockNode} from '../nodes/CodeBlockNode';
 import {$createHorizontalRuleNode, $isHorizontalRuleNode, HorizontalRuleNode} from '../nodes/HorizontalRuleNode';
-import {$createNodeSelection, $setSelection} from 'lexical';
+import {$createNodeSelection, $createTextNode, $getNodeByKey, $setSelection} from 'lexical';
 import {
     HEADING,
     ORDERED_LIST,
@@ -9,6 +10,43 @@ import {
     TEXT_MATCH_TRANSFORMERS,
     UNORDERED_LIST
 } from '@lexical/markdown';
+import {$isHeadingNode} from '@lexical/rich-text';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+
+// A list marker like `1. ` or `- ` at the start of a heading (e.g. a numbered
+// heading "1. Introduction") should stay literal text rather than convert the
+// heading into a list. `@lexical/markdown` strips the matched marker before
+// calling `replace`, so we re-insert it verbatim. We must also avoid an infinite
+// loop: the re-inserted marker matches the same regExp and `runElementTransformers`
+// fires again synchronously. Placing the caret at offset 1 makes the immediate
+// re-run fail its leading checks (the char before the caret is no longer a
+// space and the match length no longer equals the caret offset), then a
+// `historic`-tagged microtask update (which the markdown listener ignores)
+// restores the caret to the end of the heading.
+const guardListInHeadings = (transformers, editor) => transformers.map((transformer) => {
+    if (transformer !== ORDERED_LIST && transformer !== UNORDERED_LIST) {
+        return transformer;
+    }
+    return {
+        ...transformer,
+        replace: (parentNode, children, match, isImport) => {
+            if (!isImport && $isHeadingNode(parentNode)) {
+                const markerNode = $createTextNode(match[0]);
+                parentNode.splice(0, 0, [markerNode]);
+                markerNode.select(1, 1);
+
+                const headingKey = parentNode.getKey();
+                queueMicrotask(() => {
+                    editor.update(() => {
+                        $getNodeByKey(headingKey)?.selectEnd();
+                    }, {tag: 'historic'});
+                });
+                return;
+            }
+            return transformer.replace(parentNode, children, match, isImport);
+        }
+    };
+});
 import {MarkdownShortcutPlugin as LexicalMarkdownShortcutPlugin} from '@lexical/react/LexicalMarkdownShortcutPlugin';
 
 export const HR = {
@@ -121,5 +159,7 @@ export const EMAIL_TRANSFORMERS = [
 ];
 
 export default function MarkdownShortcutPlugin({transformers = DEFAULT_TRANSFORMERS} = {}) {
-    return LexicalMarkdownShortcutPlugin({transformers});
+    const [editor] = useLexicalComposerContext();
+    const guardedTransformers = React.useMemo(() => guardListInHeadings(transformers, editor), [transformers, editor]);
+    return LexicalMarkdownShortcutPlugin({transformers: guardedTransformers});
 }
